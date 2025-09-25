@@ -23,44 +23,50 @@ An MCP (Model Context Protocol) server that enables LLMs to build Flutter iOS ap
 ```bash
 npm install
 ```
-
-2. Make the script executable:
+2. Build the TypeScript sources:
 ```bash
-chmod +x index.js
+npm run build
 ```
 
 ## Usage
 
 ### As MCP Server
 
-Add to your MCP client configuration:
+Configure your MCP client (e.g., Cursor) to launch the server in stdio mode:
 
 ```json
 {
   "mcpServers": {
     "flutter-design-checker": {
       "command": "node",
-      "args": ["/path/to/flutter-check-design/index.js"]
+      "args": [
+        "/absolute/path/to/flutter-check-design/dist/cli.js",
+        "--stdio"
+      ]
     }
   }
 }
 ```
 
+Dev alternatives:
+- Local HTTP mode: `npm run dev` (prints endpoint), or `npm run dev:stdio` for stdio.
+- If published, you can use `npx -y flutter-check-design --stdio`.
+
 ### Available Tools
 
 #### `flutter_design_check_workflow`
-Complete automated workflow - builds app, starts simulator, installs app, launches it, and takes screenshot.
+Complete automated workflow – builds app, starts simulator, installs app, launches it, and takes a screenshot.
 
 **Parameters:**
-- `device_id` (optional): iOS simulator device ID
-- `project_path` (optional): Path to Flutter project (defaults to current directory)
-- `screenshot_filename` (optional): Custom screenshot filename
+- `deviceId` (optional): iOS simulator device ID (auto-detected if omitted)
+- `projectPath` (required): Path to Flutter project
+- `screenshotFilename` (required): Screenshot filename (saved to `projectPath` by default)
 
 #### `flutter_build_ios`
 Builds Flutter iOS app for simulator.
 
 **Parameters:**
-- `project_path` (optional): Path to Flutter project
+- `projectPath` (optional): Path to Flutter project (defaults to current directory)
 
 #### `get_flutter_devices`
 Lists all available Flutter devices (simulators and physical devices).
@@ -69,52 +75,66 @@ Lists all available Flutter devices (simulators and physical devices).
 Starts an iOS simulator and waits for it to boot.
 
 **Parameters:**
-- `device_id` (required): Device ID of simulator to start
+- `deviceId` (required): Device ID of simulator to start
 
 #### `install_flutter_app`
 Installs Flutter app on specified device.
 
 **Parameters:**
-- `device_id` (required): Target device ID
-- `project_path` (optional): Path to Flutter project
+- `deviceId` (required): Target device ID
+- `projectPath` (optional): Path to Flutter project (defaults to current directory)
 
 #### `launch_flutter_app`
 Launches the Flutter app using its bundle ID.
 
 **Parameters:**
-- `device_id` (required): Target device ID
-- `project_path` (optional): Path to Flutter project
+- `deviceId` (required): Target device ID
+- `projectPath` (optional): Path to Flutter project (defaults to current directory)
 
 #### `take_simulator_screenshot`
 Captures screenshot of the iOS simulator.
 
 **Parameters:**
-- `filename` (optional): Screenshot filename
-- `output_path` (optional): Directory to save screenshot
+- `filename` (optional): Screenshot filename (default: `screenshot_<timestamp>.png`)
+- `outputPath` (optional): Directory to save screenshot (defaults to current directory)
+
+### Available Prompts
+
+#### `ensure_screen_matches_design`
+Guides the LLM to iteratively build, run, screenshot, and refine the Flutter UI until the created screen matches the provided design at 100%.
+
+**Arguments:**
+- `designReference` (required): Figma URL, image path, or a short description of the target design
 
 ## Example Usage
 
 ```javascript
 // Complete workflow - most common usage
 await mcp.callTool('flutter_design_check_workflow', {
-  project_path: './my_flutter_app',
-  screenshot_filename: 'design_check.png'
+  projectPath: './my_flutter_app',
+  screenshotFilename: 'design_check.png'
 });
 
 // Step by step
-await mcp.callTool('flutter_build_ios', { project_path: './my_flutter_app' });
+await mcp.callTool('flutter_build_ios', { projectPath: './my_flutter_app' });
 await mcp.callTool('get_flutter_devices', {});
-await mcp.callTool('start_simulator', { device_id: 'ABCD1234-1234-1234-1234-123456789ABC' });
+await mcp.callTool('start_simulator', { deviceId: 'ABCD1234-1234-1234-1234-123456789ABC' });
 await mcp.callTool('install_flutter_app', {
-  device_id: 'ABCD1234-1234-1234-1234-123456789ABC',
-  project_path: './my_flutter_app'
+  deviceId: 'ABCD1234-1234-1234-1234-123456789ABC',
+  projectPath: './my_flutter_app'
 });
 await mcp.callTool('launch_flutter_app', {
-  device_id: 'ABCD1234-1234-1234-1234-123456789ABC',
-  project_path: './my_flutter_app'
+  deviceId: 'ABCD1234-1234-1234-1234-123456789ABC',
+  projectPath: './my_flutter_app'
 });
 await mcp.callTool('take_simulator_screenshot', {
   filename: 'app_screenshot.png'
+});
+
+// Prompt usage (if your MCP client supports prompts)
+await mcp.getPrompt({
+  name: 'ensure_screen_matches_design',
+  arguments: { designReference: 'https://www.figma.com/file/...' }
 });
 ```
 
