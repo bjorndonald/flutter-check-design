@@ -1,0 +1,10 @@
+{
+  "servers": [
+    {
+      "name": "flutter-check-design",
+      "type": "sse",
+      "url": "http://localhost:3333/sse",
+      "command": "npm start"
+    }
+  ]
+}

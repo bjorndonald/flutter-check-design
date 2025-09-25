@@ -1,0 +1,17 @@
+{
+  "name": "flutter-check-design-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Flutter iOS simulator design checking",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0"
+  },
+  "keywords": ["mcp", "flutter", "ios", "simulator", "design", "screenshot"],
+  "author": "",
+  "license": "MIT"
+}
