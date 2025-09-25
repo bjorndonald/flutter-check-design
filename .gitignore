@@ -1,0 +1,10 @@
+node_modules/
+.env
+package-lock.json
+dist/
+output/
+reports/
+.cursor/
+prompts/
+*.DS_STORE
+node_modules/
